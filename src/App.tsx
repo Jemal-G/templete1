@@ -1,57 +1,14 @@
-"use client"
-import { useEffect, useState } from "react";
-import type { Schema } from "../amplify/data/resource";
-import { useAuthenticator } from '@aws-amplify/ui-react';
-import { generateClient } from "aws-amplify/data";
+// app/page.tsx (App Router) or components/App.tsx
+import LocationFinderClient from "./components/LocationFinderClient";
+import LocationFinderServer from "./components/LocationFinderServer";
 
-const client = generateClient<Schema>();
-
-function App() {
-  const { user, signOut } = useAuthenticator();
-  const [todos, setTodos] = useState<Array<Schema["Todo"]["type"]>>([]);
-
-  useEffect(() => {
-    client.models.Todo.observeQuery().subscribe({
-      next: (data) => setTodos([...data.items]),
-    });
-  }, []);
-
-  function createTodo() {
-    client.models.Todo.create({ content: window.prompt("Todo content") });
-  }
-
-
-    
-  function deleteTodo(id: string) {
-    client.models.Todo.delete({ id })
-  }
-  if (!user) {
-    return <p>Loading user information...</p>;
-  }
-
+export default async function App() {
+  const serverComponent = await LocationFinderServer();
   return (
     <main>
-      <h1>{(user as any).attributes?.email || "jgeda@madisoncollege.edu's"} todos</h1>
-      <button onClick={createTodo}>+ new</button>
-      <ul>
-        {todos.map((todo) => (
-          <li 
-          
-          onClick={() => deleteTodo(todo.id)}
-          key={todo.id}>{todo.content}
-          </li>
-        ))}
-      </ul>
-      <div>
-        🥳 App successfully hosted. Try creating a new todo.
-        <br />
-        <a href="https://docs.amplify.aws/react/start/quickstart/#make-frontend-updates">
-          Review next step of this tutorial.
-        </a>
-      </div>
-      <button onClick={signOut}>Sign out</button>
+      <LocationFinderClient />
+      {/* Render the result of the asynchronous component */}
+      {serverComponent}
     </main>
   );
 }
-
-export default App;
